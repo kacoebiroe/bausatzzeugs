@@ -1,0 +1,15 @@
+set term svg
+set output "total_log.svg"
+
+set xlabel "OSCCAL"
+set ylabel "Frequency [Hz]"
+
+f(x) = ((a*x + b)*x + c)*x +d
+
+fit f(x) 'total_log' via a,b,c,d
+
+g(x) = a1*exp(b1*x)+c1
+
+fit g(x) 'total_log' via a1,b1,c1
+
+plot "total_log" with linespoints title 'Frequency', f(x) with lines title 'fit Polynom 3' 

@@ -1,0 +1,116 @@
+
+calibrate.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000078  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .fuse         00000003  00820000  00820000  000000ec  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .stab         00000a98  00000000  00000000  000000f0  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  3 .stabstr      000007d2  00000000  00000000  00000b88  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .comment      00000011  00000000  00000000  0000135a  2**0
+                  CONTENTS, READONLY
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	14 c0       	rjmp	.+40     	; 0x2a <__ctors_end>
+   2:	1b c0       	rjmp	.+54     	; 0x3a <__bad_interrupt>
+   4:	1a c0       	rjmp	.+52     	; 0x3a <__bad_interrupt>
+   6:	19 c0       	rjmp	.+50     	; 0x3a <__bad_interrupt>
+   8:	18 c0       	rjmp	.+48     	; 0x3a <__bad_interrupt>
+   a:	18 c0       	rjmp	.+48     	; 0x3c <__vector_5>
+   c:	16 c0       	rjmp	.+44     	; 0x3a <__bad_interrupt>
+   e:	15 c0       	rjmp	.+42     	; 0x3a <__bad_interrupt>
+  10:	14 c0       	rjmp	.+40     	; 0x3a <__bad_interrupt>
+  12:	13 c0       	rjmp	.+38     	; 0x3a <__bad_interrupt>
+  14:	12 c0       	rjmp	.+36     	; 0x3a <__bad_interrupt>
+  16:	11 c0       	rjmp	.+34     	; 0x3a <__bad_interrupt>
+  18:	10 c0       	rjmp	.+32     	; 0x3a <__bad_interrupt>
+  1a:	0f c0       	rjmp	.+30     	; 0x3a <__bad_interrupt>
+  1c:	0e c0       	rjmp	.+28     	; 0x3a <__bad_interrupt>
+  1e:	0d c0       	rjmp	.+26     	; 0x3a <__bad_interrupt>
+  20:	0c c0       	rjmp	.+24     	; 0x3a <__bad_interrupt>
+  22:	0b c0       	rjmp	.+22     	; 0x3a <__bad_interrupt>
+  24:	0a c0       	rjmp	.+20     	; 0x3a <__bad_interrupt>
+  26:	09 c0       	rjmp	.+18     	; 0x3a <__bad_interrupt>
+  28:	08 c0       	rjmp	.+16     	; 0x3a <__bad_interrupt>
+
+0000002a <__ctors_end>:
+  2a:	11 24       	eor	r1, r1
+  2c:	1f be       	out	0x3f, r1	; 63
+  2e:	cf e5       	ldi	r28, 0x5F	; 95
+  30:	d1 e0       	ldi	r29, 0x01	; 1
+  32:	de bf       	out	0x3e, r29	; 62
+  34:	cd bf       	out	0x3d, r28	; 61
+  36:	14 d0       	rcall	.+40     	; 0x60 <main>
+  38:	1d c0       	rjmp	.+58     	; 0x74 <_exit>
+
+0000003a <__bad_interrupt>:
+  3a:	e2 cf       	rjmp	.-60     	; 0x0 <__vectors>
+
+0000003c <__vector_5>:
+	.low = 0xE2,
+	.high = 0xDF,
+	.extended = 0xFF,
+};
+
+ISR(TIMER1_OVF_vect) {
+  3c:	1f 92       	push	r1
+  3e:	0f 92       	push	r0
+  40:	0f b6       	in	r0, 0x3f	; 63
+  42:	0f 92       	push	r0
+  44:	11 24       	eor	r1, r1
+  46:	8f 93       	push	r24
+  48:	9f 93       	push	r25
+    PORTD ^= (1<<PD0);
+  4a:	82 b3       	in	r24, 0x12	; 18
+  4c:	91 e0       	ldi	r25, 0x01	; 1
+  4e:	89 27       	eor	r24, r25
+  50:	82 bb       	out	0x12, r24	; 18
+}
+  52:	9f 91       	pop	r25
+  54:	8f 91       	pop	r24
+  56:	0f 90       	pop	r0
+  58:	0f be       	out	0x3f, r0	; 63
+  5a:	0f 90       	pop	r0
+  5c:	1f 90       	pop	r1
+  5e:	18 95       	reti
+
+00000060 <main>:
+
+
+int main(void)
+{
+    DDRD = (1<<PD0);
+  60:	81 e0       	ldi	r24, 0x01	; 1
+  62:	81 bb       	out	0x11, r24	; 17
+
+	sei(); // enable interrupts
+  64:	78 94       	sei
+
+    // Use default timer mode (no compare match, no pwm)
+    TCCR1A = 0;
+  66:	1f bc       	out	0x2f, r1	; 47
+    // Clock select 001 for CPU_FREQ
+    TCCR1B = (0<<CS12) | (0<<CS11) | (1<<CS10);
+  68:	8e bd       	out	0x2e, r24	; 46
+
+
+    TIMSK = (1<<TOIE1);
+  6a:	80 e8       	ldi	r24, 0x80	; 128
+  6c:	89 bf       	out	0x39, r24	; 57
+
+    OSCCAL = EXT_OSCCAL;
+  6e:	84 e3       	ldi	r24, 0x34	; 52
+  70:	81 bf       	out	0x31, r24	; 49
+  72:	ff cf       	rjmp	.-2      	; 0x72 <main+0x12>
+
+00000074 <_exit>:
+  74:	f8 94       	cli
+
+00000076 <__stop_program>:
+  76:	ff cf       	rjmp	.-2      	; 0x76 <__stop_program>

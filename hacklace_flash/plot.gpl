@@ -1,0 +1,3 @@
+set term svg
+set output 'distribution.svg'
+plot 'distribution.data' with lines
